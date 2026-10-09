@@ -127,6 +127,15 @@ async function getRatingText(page) {
     return getText(page, '#average-rating-info');
 }
 
+function extractBrand(pageTitle, productTitle) {
+    if (!pageTitle || !productTitle || !pageTitle.includes(productTitle)) return null;
+    return pageTitle.split(productTitle)[0].trim() || null;
+}
+
+function findSpecValue(specs, namePattern) {
+    return specs.find((spec) => namePattern.test(spec.name))?.value ?? null;
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -167,6 +176,12 @@ async function main() {
 
         const ratingText = await getRatingText(page);
         console.log(parseRating(ratingText));
+
+        console.log(extractBrand(title, fromDataLayer.title));
+
+        console.log(findSpecValue(specs, /manufacturer number|mpn|part number/i));
+
+        console.log(findSpecValue(specs, /upc|ean|gtin/i));
     } finally {
         await browser.close();
     }
