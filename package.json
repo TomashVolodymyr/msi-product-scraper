@@ -1,0 +1,16 @@
+{
+  "name": "msi-product-scraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/scrape.js",
+  "scripts": {
+    "scrape": "node src/scrape.js"
+  },
+  "keywords": [],
+  "author": "Volodymyr Tomash",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.64.0"
+  }
+}
