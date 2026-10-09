@@ -103,6 +103,30 @@ async function getSpecs(page) {
     );
 }
 
+function parseRating(text) {
+    const match = text?.match(/([\d.]+)\s*\((\d+)\)/);
+    if (!match) return { star_rating: null, review_count: null };
+
+    return {
+        star_rating: Number(match[1]),
+        review_count: Number(match[2]),
+    };
+}
+
+async function getRatingText(page) {
+    try {
+        await page.waitForFunction(
+            () => document.querySelector('#average-rating-info')?.textContent.trim(),
+            null,
+            { timeout: 10_000 },
+        );
+    } catch {
+        return null;
+    }
+
+    return getText(page, '#average-rating-info');
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -140,6 +164,9 @@ async function main() {
         const specs = await getSpecs(page);
         console.log(specs.length);
         console.log(specs.slice(0, 3));
+
+        const ratingText = await getRatingText(page);
+        console.log(parseRating(ratingText));
     } finally {
         await browser.close();
     }
