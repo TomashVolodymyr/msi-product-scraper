@@ -52,6 +52,14 @@ function toCategoryPath(categoryTree) {
     return categoryTree.length > 0 ? categoryTree.map(crump => crump.name).join(' > ') : null;
 }
 
+async function getText(page, selector) {
+    const texts = await page.$$eval(selector, (elements) =>
+        elements.map((element) => element.textContent.replace(/\s+/g, ' ').trim()),
+    );
+
+    return texts[0] || null;
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -76,6 +84,9 @@ async function main() {
         const categoryTree = await getCategoryTree(page);
         console.log(categoryTree);
         console.log(toCategoryPath(categoryTree));
+
+        const description = await getText(page, '.product-detail h2.title + div');
+        console.log(description);
     } finally {
         await browser.close();
     }
