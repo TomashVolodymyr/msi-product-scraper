@@ -83,6 +83,26 @@ async function getImageUrls(page) {
     };
 }
 
+async function getSpecs(page) {
+    return page.$$eval('table tr', (rows) =>
+        rows
+            .map((row) => {
+                const nameCell = row.querySelector('th');
+                const valueCell = row.querySelector('td');
+                if (!nameCell || !valueCell) return null;
+
+                const clean = (text) => text.replace(/\s+/g, ' ').trim();
+                const value = clean(valueCell.textContent);
+
+                return {
+                    name: clean(nameCell.textContent),
+                    value: value && value !== '-' ? value : null,
+                };
+            })
+            .filter(Boolean),
+    );
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -116,6 +136,10 @@ async function main() {
 
         const images = await getImageUrls(page);
         console.log(images);
+
+        const specs = await getSpecs(page);
+        console.log(specs.length);
+        console.log(specs.slice(0, 3));
     } finally {
         await browser.close();
     }
