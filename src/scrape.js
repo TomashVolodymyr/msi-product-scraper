@@ -31,6 +31,27 @@ function mapDataLayerFields(item) {
     }
 }
 
+async function getCategoryTree(page) {
+    const crumbs = await page.$$eval(
+        'ol.breadcrumb li.breadcrumb-item:not(.active)',
+        (items) => {
+            return items.map(li => {
+                const link = li.querySelector('a');
+                return {
+                    name: li.textContent.trim(),
+                    url: link ? link.href : null
+                }
+            });
+        }
+    );
+
+    return crumbs.filter(crumb => crumb.name.toLowerCase() !== 'home');
+}
+
+function toCategoryPath(categoryTree) {
+    return categoryTree.length > 0 ? categoryTree.map(crump => crump.name).join(' > ') : null;
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -51,6 +72,10 @@ async function main() {
         const dataLayerProduct = await getDataLayerProduct(page);
         const fromDataLayer = mapDataLayerFields(dataLayerProduct);
         console.log(fromDataLayer);
+
+        const categoryTree = await getCategoryTree(page);
+        console.log(categoryTree);
+        console.log(toCategoryPath(categoryTree));
     } finally {
         await browser.close();
     }
