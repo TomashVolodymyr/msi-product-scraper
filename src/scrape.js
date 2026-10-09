@@ -60,6 +60,29 @@ async function getText(page, selector) {
     return texts[0] || null;
 }
 
+function toAvailability(text) {
+    if (!text) return null;
+
+    const value = text.toLowerCase();
+    if (value.includes('pre-order') || value.includes('preorder')) return 'pre_order';
+    if (value.includes('out of stock') || value.includes('notify me')) return 'out_of_stock';
+    if (value.includes('in stock') || value.includes('add to cart')) return 'in_stock';
+    return null;
+}
+
+async function getImageUrls(page) {
+    const urls = await page.$$eval(
+        '.product-detail .col-md-6:has(#imagePopup) img:not(.product-detail-thumb-bto)',
+        (images) => images.map((img) => img.src).filter(Boolean),
+    );
+
+    const unique = [...new Set(urls)];
+    return {
+        image_url: unique[0] ?? null,
+        additional_image_urls: unique.slice(1),
+    };
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -87,6 +110,12 @@ async function main() {
 
         const description = await getText(page, '.product-detail h2.title + div');
         console.log(description);
+
+        const buyBlockText = await getText(page, '.product-detail .row:has(> #prices-wrapper)');
+        console.log(toAvailability(buyBlockText));
+
+        const images = await getImageUrls(page);
+        console.log(images);
     } finally {
         await browser.close();
     }
