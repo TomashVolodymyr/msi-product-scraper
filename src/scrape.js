@@ -4,6 +4,15 @@ const URL = 'https://us-store.msi.com/Motherboards/Intel-Platform-Motherboard/IN
 const USER_AGENT =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
 
+async function getDataLayerProduct(page) {
+    const handle = await page.waitForFunction(() => {
+        const entries = Array.isArray(window.dataLayer) ? window.dataLayer : [];
+        return entries.find(entry => entry[0] === 'event' && entry[1] === 'view_item');
+    }, null, { timeout: 30_000 });
+
+    const event = await handle.jsonValue();
+    return event?.[2]?.items?.[0] ?? null;
+}
 
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
@@ -20,12 +29,10 @@ async function main() {
         const title = await page.title();
         if (/access denied/i.test(title)) {
             throw new Error('Blocked by the site: got "Access Denied" page');
-
         }
 
-        console.log('Final URL: ', page.url());
-        console.log('Title: ', title);
-
+        const dataLayerProduct = await getDataLayerProduct(page);
+        console.log(dataLayerProduct);
     } finally {
         await browser.close();
     }
