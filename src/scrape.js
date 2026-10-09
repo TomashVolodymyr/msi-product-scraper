@@ -14,6 +14,23 @@ async function getDataLayerProduct(page) {
     return event?.[2]?.items?.[0] ?? null;
 }
 
+function roundPrice(val) {
+    return Math.round(val * 100) / 100;
+}
+
+function mapDataLayerFields(item) {
+    const paid = Number.isFinite(item?.price) ? item.price : null;
+    const discount = Number.isFinite(item?.discount) ? item.discount : 0;
+    const hasDiscount = paid !== null && discount > 0;
+
+    return {
+        item_id: item?.id ?? null,
+        title: item?.name ?? null,
+        price: hasDiscount ? roundPrice(paid + discount) : paid,
+        sale_price: hasDiscount ? paid : null,
+    }
+}
+
 async function main() {
     const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
@@ -32,7 +49,8 @@ async function main() {
         }
 
         const dataLayerProduct = await getDataLayerProduct(page);
-        console.log(dataLayerProduct);
+        const fromDataLayer = mapDataLayerFields(dataLayerProduct);
+        console.log(fromDataLayer);
     } finally {
         await browser.close();
     }
