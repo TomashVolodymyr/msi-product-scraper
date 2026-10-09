@@ -6,7 +6,7 @@ const USER_AGENT =
 
 
 async function main() {
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({ headless: true, channel: 'chromium' });
     try {
         const context = await browser.newContext({
             userAgent: USER_AGENT,
